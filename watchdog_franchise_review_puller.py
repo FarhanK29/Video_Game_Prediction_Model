@@ -11,19 +11,19 @@ GAMES = [
         "title": "Watch_Dogs",
         "slug": "watch_dogs",
         "appid": 243470,
-        "release_date": "2014-05-27",   # YYYY-MM-DD
+        "release_date": "2014-07-05", 
     },
     {
         "title": "Watch_Dogs 2",
         "slug": "watch_dogs_2",
         "appid": 447040,
-        "release_date": "2016-11-28",
+        "release_date": "2021-08-24",
     },
     {
         "title": "Watch Dogs: Legion",
         "slug": "watch_dogs_legion",
         "appid": 2239550,
-        "release_date": "2020-10-29",
+        "release_date": "2023-01-26",
     },
 ]
 
@@ -181,6 +181,7 @@ def export_first_90_days_csv(db_path: str, out_csv_path: str, release_date_str: 
     # Compute unix timestamps for [release_date, release_date + 90 days]
     release_dt = datetime.strptime(release_date_str, "%Y-%m-%d")
     end_dt = release_dt + timedelta(days=90)
+    print(release_dt, end_dt)
     release_ts = int(release_dt.timestamp())
     end_ts = int(end_dt.timestamp())
 
@@ -245,19 +246,37 @@ def main():
         print(f"CSV (all):    {csv_path_all}")
         print(f"CSV (90 days): {csv_path_90}")
 
-        conn = init_db(db_path)
-        csv_file, csv_writer = init_csv(csv_path_all)
+        # conn = init_db(db_path)
+        # csv_file, csv_writer = init_csv(csv_path_all)
 
-        try:
-            fetch_all_reviews(appid, conn, csv_writer)
-        finally:
-            conn.close()
-            csv_file.close()
+        # try:
+        #     fetch_all_reviews(appid, conn, csv_writer)
+        # finally:
+        #     conn.close()
+        #     csv_file.close()
 
         # Now create the truncated 90-day CSV from the DB
         export_first_90_days_csv(db_path, csv_path_90, release_date)
 
         print(f"===== Finished {title} =====\n")
+
+
+def find_first_date(db_path):
+    print("path:", db_path)
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT 
+            COUNT(*),
+            MIN(timestamp_created),
+            MAX(timestamp_created)
+        FROM reviews
+    """)
+    count, t_min, t_max = cur.fetchone()
+    conn.close()
+
+    print("earliest review:", datetime.utcfromtimestamp(t_min))
+    print()
 
 
 if __name__ == "__main__":
