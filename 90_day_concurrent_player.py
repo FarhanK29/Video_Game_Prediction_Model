@@ -1,6 +1,7 @@
 import requests
 import json
 import sqlite3
+import csv
 
 
 
@@ -17,7 +18,25 @@ def init_db(db_path: str):
     return conn
 
 
-def save_review_db(conn, data):
+def init_csv(csv_path: str):
+    f = open(csv_path, mode="w", newline="", encoding="utf-8")
+    writer = csv.writer(f)
+    writer.writerow([
+        "timestamp",
+        "player_count"
+    ])
+    return f, writer
+
+
+
+def save_player_csv(writer, data):
+    writer.writerow([
+        data[0],
+        data[1]
+    ])
+
+
+def save_player_db(conn, data):
     cur = conn.cursor()
     cur.execute("""
         INSERT OR REPLACE INTO reviews (
@@ -33,14 +52,16 @@ def save_review_db(conn, data):
 
 
 
-def get_concurrent_players(conn,appid):
+def get_concurrent_players(conn,appid,writer):
     url = f'https://steamcharts.com/app/{appid}/chart-data.json'
     
     resp = requests.get(url,timeout=5)
     resp.raise_for_status()
     data = resp.json()
     for row in data:
-        save_review_db(conn,row)
+        save_player_db(conn,row)
+        save_player_csv(writer,row)
+        
 
 
 GAMES = [
@@ -73,16 +94,16 @@ def main():
         release_date = game["release_date"]
 
         db_path = f"{slug}_players.db"
-        csv_path_90 = f"{slug}_players_first90d.csv"
+        csv_path_all = f"{slug}_players.csv"
 
         print(f"\n===== Starting {title} (appid {appid}) =====")
         print(f"DB:           {db_path}")
-        print(f"CSV (90 days): {csv_path_90}")
 
         conn = init_db(db_path)
+        csv_file, csv_writer = init_csv(csv_path_all)
 
         try:
-            get_concurrent_players(conn,appid)
+            get_concurrent_players(conn,appid,csv_writer)
         finally:
             conn.close()
 
