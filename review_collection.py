@@ -17,6 +17,8 @@ N_GAMES_SAMPLE = 5
 # fixed random seed so the same games are chosen every time
 RANDOM_SEED = 1236
 
+MIN_WORDS_PER_REVIEW = 5
+
 
 def init_csv(csv_path):
     f = open(csv_path, mode="w", newline="", encoding="utf-8")
@@ -102,6 +104,14 @@ def fetch_all_reviews_to_csv(app_id, csv_writer, csv_file, max_bytes):
             break
 
         for r in reviews:
+            
+            text = (r.get("review") or "").strip()
+            if not text:
+                continue
+            word_count = len(text.split())
+            if word_count < MIN_WORDS_PER_REVIEW:
+                continue
+
             rec_id = r.get("recommendationid")
             if rec_id in unique:
                 continue
