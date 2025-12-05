@@ -32,7 +32,6 @@ def add_game_data():
         appid = df.iloc[i]['appid']
 
         data = get_gamalytic_info(appid)
-
         df.loc[i,'total_reviews'] = data.get('reviewsSteam') or np.nan
         df.loc[i,'estimated_launch_reviews'] = data.get('reviewsSteam',0) * 0.1
         df.loc[i,'followers'] =  data.get('followers') or np.nan
@@ -44,6 +43,17 @@ def add_game_data():
         df.loc[i,'revenue'] = data.get('revenue') or np.nan
         df.loc[i,'players'] = data.get('players') or np.nan
         df.loc[i,'owners'] = data.get('owners') or np.nan
+
+        developers = data.get('developers')
+        publishers = data.get('publishers')
+        
+        if (developers == []):
+            developers = publishers
+        if (publishers == []):
+            publishers = developers
+
+        df.loc[i,'developer'] = developers[0]
+        df.loc[i,'publisher'] = publishers[0]
     
 
     df.to_csv(OUTPUT_CSV,index=False)
