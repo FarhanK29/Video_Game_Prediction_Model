@@ -67,7 +67,7 @@ def fetch_filtered_reviews_sentiment(appid: int,
             "cursor": cursor,
         }
 
-        resp = requests.get(url, params=params, timeout=3)
+        resp = requests.get(url, params=params, timeout=5)
 
         if resp.status_code == 429:
             print(f"[appid {appid}] rate limited, sleeping 10s...")
