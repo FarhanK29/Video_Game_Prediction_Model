@@ -131,7 +131,6 @@ def get_concurrent_player_data(game_dict):
         release_date = chart_df.loc[0,'DateTime']
         release_date_90 = release_date + timedelta(days=90)
         print(f"{appid}: Data for {game_dict['release_date']} unavailable. Setting new release date to {release_date}")
-        return None
     
 
     chart_df = chart_df.dropna(thresh=2)
@@ -177,6 +176,13 @@ def main():
 
     while user_input.lower() != 'exit':
         appid = fetch_game(user_input)
+        if (appid is None):
+            user_input = str(input('Enter name of game or type exit to quit: '))
+            continue
+        game_list = pd.read_csv(INPUT_GAME_LIST_CSV)
+        if (len(game_list[game_list['appid']== appid]) == 1):
+            print('Game already exists in database')
+            continue
         new_game = fetch_gamalytic_data(appid=appid)
         # print(f'Gamalytic info: {new_game}')
         print('appid retrieved!')
@@ -185,7 +191,7 @@ def main():
         print(f'Average concurrent players for {new_game['name']} is {new_game['avg_concurrent_players_after_90']}')
         new_game_sentiment = get_sentiment_data(new_game_concurrent)
         print(f'Average sentiment of {new_game['name']}: {new_game_sentiment['avg_sentiment']}')
-        game_list = pd.read_csv(INPUT_GAME_LIST_CSV)
+        
         game_list = game_list._append(new_game_sentiment, ignore_index=True)
         game_list.to_csv(OUTPUT_GAME_LIST_CSV,index=False)
         user_input = str(input('Enter name of game or type exit to quit: '))
