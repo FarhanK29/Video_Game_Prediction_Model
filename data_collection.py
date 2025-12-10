@@ -41,15 +41,10 @@ def ms_to_date(ms):
     return dt.date().isoformat()
 
 
-def add_or_update_game(store: dict, steam_id: str | int, name: str, release_ms) -> None:
-    """
-    Add a game to the dictionary (or update its info if we already saw it).
-    Keyed by appid (int).
-    """
+def add_or_update_game(store, steam_id, name, release_ms):
     try:
         appid = int(steam_id)
     except (ValueError, TypeError):
-        # Skip weird / missing IDs
         return
 
     #Do conversions
@@ -69,26 +64,22 @@ def add_or_update_game(store: dict, steam_id: str | int, name: str, release_ms) 
         if store[appid].get("release_date") is None and release_date is not None:
             store[appid]["release_date"] = release_date
 
-def fetch_game_data(appid: int) -> dict | None:
-    """
-    Call the Gamalytic /game/{appid} endpoint and return JSON.
-    Returns None on error.
-    """
+def fetch_game_data(appid):
     url = BASE_URL.format(appid)
     try:
         resp = requests.get(url, timeout=10)
     except requests.RequestException as e:
-        print(f"[ERROR] Request failed for appid {appid}: {e}")
+        print(f"Request failed for appid {appid}: {e}")
         return None
 
     if resp.status_code != 200:
-        print(f"[ERROR] HTTP {resp.status_code} for appid {appid}: {resp.text[:200]}")
+        print(f"HTTP {resp.status_code} for appid {appid}: {resp.text[:200]}")
         return None
 
     try:
         return resp.json()
     except ValueError as e:
-        print(f"[ERROR] JSON parse error for appid {appid}: {e}")
+        print(f"JSON parse error for appid {appid}: {e}")
         return None
 
 

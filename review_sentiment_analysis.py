@@ -6,15 +6,14 @@ import nltk
 import pandas as pd
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
-# Make sure VADER lexicon is available
 nltk.download("vader_lexicon", quiet=True)
 
-# Folders / files
+
 REVIEWS_DIR = Path("reviews_data")
 OUTPUT_CSV = Path("data/combined_reviews_with_sentiment.csv")
 GLOB_PATTERN = "*_reviews.csv"
 
-# Playtime buckets (in hours)
+
 def bucket_playtime(hours: float | None) -> str | None:
     if hours is None:
         return None
@@ -86,7 +85,6 @@ def main():
     # Combine everything
     combined = pd.concat(all_dfs, ignore_index=True)
 
-    # Optional: keep only columns you care about
     cols = [
         "game_slug",
         "recommendationid",
@@ -103,7 +101,7 @@ def main():
         "sentiment_compound",
         "raw_json",
     ]
-    # Filter to existing columns (some might not be present in all files)
+
     cols = [c for c in cols if c in combined.columns]
 
     OUTPUT_CSV.parent.mkdir(parents=True, exist_ok=True)

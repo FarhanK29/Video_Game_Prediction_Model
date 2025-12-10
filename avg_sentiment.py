@@ -22,7 +22,7 @@ TARGET_REVIEWS_PER_GAME = 1000
 STEAM_REVIEWS_URL = "https://store.steampowered.com/appreviews/{appid}"
 
 
-def load_games_from_csv(path: Path):
+def load_games_from_csv(path):
     games = []
     with path.open(newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
@@ -82,7 +82,6 @@ def fetch_filtered_reviews_sentiment(appid, sid, target_n):
             if len(text.split()) < MIN_WORDS_PER_REVIEW:
                 continue
 
-            # Playtime filter
             author = r.get("author", {}) or {}
             playtime_forever = author.get("playtime_forever")
             if playtime_forever is None:
