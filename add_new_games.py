@@ -71,6 +71,8 @@ def fetch_gamalytic_data(appid):
     avg_playtime = int(launch_data['avgPlaytime']) if int(launch_data['avgPlaytime'] or 0) > 0 else int(data['avgPlaytime'])
     copies_sold = int(data['copiesSold'])
     revenue = int(data['revenue'])
+    is_singleplayer =  "Singleplayer" in data['tags']
+    price = float(launch_data['price']) if 'price' in launch_data else  float(data['price'])
     players = int(launch_data['players']) if int(launch_data['players']) > 0 else int(data['players'])
     owners = data['owners']
     estimated_launch_followers = int(launch_data['followers']) if int(launch_data['followers']) > 0 else int(data['followers']) * 0.1
@@ -86,7 +88,7 @@ def fetch_gamalytic_data(appid):
     publisher = publishers[0]
 
     new_game = {
-        'name' : name,
+        'name' : name, 
         'slug' : slug,
         'appid' : appid,
         'release_date' : release_date,
@@ -102,7 +104,9 @@ def fetch_gamalytic_data(appid):
         'estimated_launch_copies_sold' : estimated_launch_copies_sold,
         'estimated_launch_followers' : estimated_launch_followers,
         'developer' : developer,
-        'publisher' : publisher 
+        'publisher' : publisher,
+        'price' : price,
+        'is_singleplayer' : is_singleplayer
     }
     return new_game
 # mssing avg_sentiment, peak_concurrent_players_after_90, peak_concurrent_players_timestamp,avg_concurrent_players_after_90
