@@ -56,10 +56,6 @@ def save_review_csv(writer, r, raw_json_str):
 
 
 def fetch_all_reviews_to_csv(app_id, csv_writer, csv_file, max_bytes):
-    """
-    Fetch Steam reviews for one app_id, writing directly to CSV,
-    but stop once the actual CSV file size on disk reaches max_bytes.
-    """
     steam_reviews_url = f"https://store.steampowered.com/appreviews/{app_id}"
     cursor = "*"
     total = 0
@@ -151,68 +147,11 @@ def fetch_all_reviews_to_csv(app_id, csv_writer, csv_file, max_bytes):
     )
 
 
-
-def export_first_90_days_csv(all_csv_path, out_csv_path, release_date_str):
-    """
-    Read from the per-game 'all reviews' CSV and write a CSV containing
-    only reviews within 90 days of release_date_str (YYYY-MM-DD).
-    If release_date_str is None/empty, skip.
-    """
-    if not release_date_str:
-        print(f"[{all_csv_path}] No release_date provided, skipping 90-day export.")
-        return
-
-    release_dt = datetime.strptime(release_date_str, "%Y-%m-%d")
-    end_dt = release_dt + timedelta(days=90)
-    release_ts = int(release_dt.timestamp())
-    end_ts = int(end_dt.timestamp())
-
-    print(f"[{all_csv_path}] 90-day window: {release_dt} -> {end_dt}")
-
-    with open(all_csv_path, newline="", encoding="utf-8") as f_in, \
-         open(out_csv_path, "w", newline="", encoding="utf-8") as f_out:
-
-        reader = csv.DictReader(f_in)
-
-        fieldnames = [
-            "recommendationid",
-            "steamid",
-            "review",
-            "timestamp_created",
-            "timestamp_updated",
-            "voted_up",
-            "weighted_vote_score",
-            "playtime_forever",
-            "playtime_at_review",
-            "last_played",
-            "raw_json",
-        ]
-        writer = csv.DictWriter(f_out, fieldnames=fieldnames)
-        writer.writeheader()
-
-        rows_written = 0
-        for row in reader:
-            ts_str = row.get("timestamp_created")
-            if not ts_str:
-                continue
-            try:
-                ts = int(ts_str)
-            except ValueError:
-                continue
-
-            if release_ts <= ts <= end_ts:
-                writer.writerow(row)
-                rows_written += 1
-
-    print(f"[{all_csv_path}] Wrote {rows_written} reviews to 90-day CSV: {out_csv_path}")
-
-
 def load_games_from_csv(path):
     games = []
     with open(path, newline="", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
-            # Expecting columns: name, slug, appid, release_date
             try:
                 appid = int(row["appid"])
             except (ValueError, KeyError):
@@ -248,20 +187,15 @@ def main():
         release_date = game["release_date"]
 
         csv_path_all = f"reviews_data/{slug}_reviews.csv"
-        csv_path_90 = f"reviews_data/{slug}_reviews_first90d.csv"
 
         print(f"\n===== Starting {title} (appid {appid}) =====")
         print(f"CSV (all):     {csv_path_all}")
-        print(f"CSV (90 days): {csv_path_90}")
 
         csv_file, csv_writer = init_csv(csv_path_all)
         try:
             fetch_all_reviews_to_csv(appid, csv_writer, csv_file, FILE_SIZE_LIMIT_BYTES)
         finally:
             csv_file.close()
-
-        # Now create the truncated 90-day CSV from the "all reviews" CSV
-        export_first_90_days_csv(csv_path_all, csv_path_90, release_date)
 
         print(f"===== Finished {title} =====\n")
 
