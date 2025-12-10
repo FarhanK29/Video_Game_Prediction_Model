@@ -10,6 +10,18 @@ import numpy as np
 import re
 
 
+veteran_list = [
+    "Valve", "Ubisoft", "Electronic Arts", "EA Sports", "Rockstar Games","Bethesda Game Studios", "Capcom", "SEGA", "Square Enix", "Bandai Namco","Konami", "2K", "Activision", "Blizzard Entertainment", "PlayStation PC LLC","Xbox Game Studios", "CD PROJEKT RED", "Bungie", "FromSoftware","Larian Studios", "Techland", "Gearbox Software", "BioWare", "Naughty Dog","Supergiant Games", "Re-Logic","Facepunch Studios","ConcernedApe","Team Cherry","Mega Crit","Red Hook Studios","Klei Entertainment","Wube Software","Coffee Stain Studios","Unknown Worlds", "Motion Twin", "Lucas Pope","Toby Fox"
+    ]
+
+def check_veteran(developer):
+    if developer is None:
+        return 0 
+    for vet in veteran_list:
+        if vet.lower() in developer.lower():
+            return 1
+    return 0
+
 # Gets appid for steam game using steam api
 def fetch_game(game_name:str):
     steam_url = "https://store.steampowered.com/api/storesearch/"
@@ -65,17 +77,17 @@ def fetch_gamalytic_data(appid):
     timestamp_s = int(data['releaseDate']) / 1000
     release_date = datetime.fromtimestamp(timestamp_s).strftime("%Y-%m-%d")
     total_reviews = int(data['reviews'])
-    estimated_launch_reviews = int(launch_data['reviews'])  if int(launch_data['reviews'] or 0) > 0  else int(data['reviews']) * 0.1
-    followers =   int(launch_data['followers']) if int(launch_data['followers'] or 0) > 0 else int(data['followers']) * 0.1
+    estimated_launch_reviews = int(launch_data['reviews'])  if 'reviews' in launch_data else int(data['reviews']) * 0.1
+    followers =   int(launch_data['followers']) if 'followers' in launch_data else int(data['followers']) * 0.1
     review_score = int(data['reviewScore'])
-    avg_playtime = int(launch_data['avgPlaytime']) if int(launch_data['avgPlaytime'] or 0) > 0 else int(data['avgPlaytime'])
+    avg_playtime = int(launch_data['avgPlaytime']) if 'avgPlaytime' in launch_data else int(data['avgPlaytime'])
     copies_sold = int(data['copiesSold'])
     revenue = int(data['revenue'])
     is_singleplayer =  "Singleplayer" in data['tags']
     price = float(launch_data['price']) if 'price' in launch_data else  float(data['price'])
     players = int(launch_data['players']) if int(launch_data['players']) > 0 else int(data['players'])
     owners = data['owners']
-    estimated_launch_followers = int(launch_data['followers']) if int(launch_data['followers']) > 0 else int(data['followers']) * 0.1
+    estimated_launch_followers = int(launch_data['followers']) if 'followers' in launch_data else int(data['followers']) * 0.1
     estimated_launch_copies_sold =  int(data['copiesSold']) * 0.1
     developers = data['developers']
     publishers = data['publishers']
